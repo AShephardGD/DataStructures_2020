@@ -1,41 +1,141 @@
 #ifndef MYVECTOR_H_INCLUDED
 #define MYVECTOR_H_INCLUDED
 
-#include "IVector.h"
-
 #include <iostream>
 
-class MyVector : public IVector {
+// стратегия изменения capacity
+enum class ResizeStrategy {
+    Additive,
+    Multiplicative
+};
+
+// тип значений в векторе
+// потом будет заменен на шаблон
+using ValueType = double;
+
+class MyVector
+{
 public:
-    MyVector();
-    MyVector(size_t size);
-    MyVector(const MyVector& other);
+    // реализовать итераторы
+    class VectorIterator {
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = ValueType;
+        using pointer           = ValueType*;
+        using reference         = ValueType&;
+
+        VectorIterator(ValueType* ptr, size_t index);
+
+        ValueType& operator*();
+        ValueType* operator->();
+        VectorIterator& operator++();
+        VectorIterator operator++(int notUsed);
+        bool operator!=(const VectorIterator& other);
+        bool operator==(const VectorIterator& other);
+        std::ptrdiff_t operator-(const VectorIterator& other);
+
+        size_t getIndex() const;
+    private:
+        ValueType* _ptr;
+        size_t _index;
+    };
+    class ConstVectorIterator {
+    public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = std::ptrdiff_t;
+        using value_type        = const ValueType;
+        using pointer           = const ValueType*;
+        using reference         = const ValueType&;
+
+        ConstVectorIterator(const ValueType* ptr);
+
+        const ValueType& operator*();
+        const ValueType* operator->();
+        ConstVectorIterator& operator++();
+        ConstVectorIterator operator++(int notUsed);
+        bool operator!=(const ConstVectorIterator& other);
+        bool operator==(const ConstVectorIterator& other);
+        std::ptrdiff_t operator-(const ConstVectorIterator& other);
+    private:
+        const ValueType* _ptr;
+    };
+
+    // заполнить вектор значениями ValueType()
+    MyVector(size_t size = 0,
+             ResizeStrategy strategy = ResizeStrategy::Multiplicative,
+             float coef = 1.5f);
+    // заполнить вектор значениями value
+    MyVector(size_t size,
+             ValueType value,
+             ResizeStrategy strategy = ResizeStrategy::Multiplicative,
+             float coef = 1.5f);
+
+    MyVector(const MyVector& copy);
+    MyVector& operator=(const MyVector& copy);
+
     MyVector(MyVector&& other) noexcept;
-
-    MyVector& operator=(const MyVector& other);
     MyVector& operator=(MyVector&& other) noexcept;
-
     ~MyVector();
 
-    void pushBack(const ValueType& value) override;
-    void pushFront(const ValueType& value) override;
-    void insert(const ValueType& value, size_t idx) override;
+    size_t capacity() const;
+    size_t size() const;
+    float loadFactor() const;
 
-    size_t size() const override;
-    ValueType& at(size_t idx) override;
-    const ValueType& at(size_t) const override;
-    ValueType& operator[](const size_t i) override;
-    const ValueType& operator[](const size_t i) const override;
+    VectorIterator begin();
+    ConstVectorIterator begin() const;
+    VectorIterator end();
+    ConstVectorIterator end() const;
 
-    void clear() override;
-    void erase(size_t i, size_t len = 1) override;
-    void popBack() override;
+    // доступ к элементу,
+    // должен работать за O(1)
+    ValueType& operator[](const size_t i);
+    const ValueType& operator[](const size_t i) const;
 
-    size_t find(const ValueType& value, size_t pos = 0) const override;
+    // добавить в конец,
+    // должен работать за amort(O(1))
+    void pushBack(const ValueType& value);
+    // вставить,
+    // должен работать за O(n)
+    void insert(size_t i, const ValueType& value);     // версия для одного значения
+    void insert(size_t i, const MyVector& value);      // версия для вектора
+    void insert(VectorIterator it, const ValueType& value);  // версия для одного значения
+    void insert(VectorIterator it, const MyVector& value);   // версия для вектора
 
-    void print(std::ostream& stream = std::cout) const override;
+    // удалить с конца,
+    // должен работать за amort(O(1))
+    void popBack();
+    // удалить
+    // должен работать за O(n)
+    void erase(const size_t i);
+    void erase(const size_t i, size_t len);            // удалить len элементов начиная с i
 
+    // найти элемент,
+    // должен работать за O(n)
+    // если isBegin == true, найти индекс первого элемента, равного value, иначе последнего
+    // если искомого элемента нет, вернуть end
+    VectorIterator find(const ValueType& value, bool isBegin = true);
+
+    // зарезервировать память (принудительно задать capacity)
+    void reserve(const size_t capacity);
+
+    // изменить размер
+    // если новый размер больше текущего, то новые элементы забиваются value
+    // если меньше - обрезаем вектор
+    void resize(const size_t size, const ValueType& value = ValueType());
+
+    // очистка вектора, без изменения capacity
+    void clear();
+
+    void print(std::ostream& stream = std::cout) const;
     friend std::ostream& operator<<(std::ostream& stream, const MyVector& myVector);
+private:
+    void resizeVector(size_t size);
+    ValueType* _data;
+    size_t _size;
+    size_t _capacity;
+    float _resizeCoef;
+    ResizeStrategy _strategy;
 };
 
 #endif // MYVECTOR_H_INCLUDED
