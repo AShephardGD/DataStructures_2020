@@ -187,19 +187,39 @@ float MyVector::loadFactor() const {
 
 
 MyVector::VectorIterator MyVector::begin() {
-    return MyVector::VectorIterator(_data, 0);
+    if (size()) {
+        return MyVector::VectorIterator(_data, 0);
+    }
+    else {
+        return MyVector::VectorIterator(nullptr, 0);
+    }
 }
 
 MyVector::ConstVectorIterator MyVector::begin() const {
-    return MyVector::ConstVectorIterator(_data);
+    if (size()) {
+        return MyVector::ConstVectorIterator(_data);
+    }
+    else {
+        return MyVector::ConstVectorIterator(nullptr);
+    }
 }
 
 MyVector::VectorIterator MyVector::end() {
-    return MyVector::VectorIterator(_data + size() - 1, size() - 1);
+    if (size()) {
+        return MyVector::VectorIterator(_data + size(), size());
+    }
+    else {
+        return MyVector::VectorIterator(nullptr, 0);
+    }
 }
 
 MyVector::ConstVectorIterator MyVector::end() const {
-    return MyVector::ConstVectorIterator(_data + size() - 1);
+    if (size()) {
+        return MyVector::ConstVectorIterator(_data + size());
+    }
+    else {
+        return MyVector::ConstVectorIterator(nullptr);
+    }
 }
 
 
@@ -302,7 +322,31 @@ MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) {
                 res = it;
             }
         }
-        if (it == end()) {
+        if ((it == end()) && (*res != value)) {
+            return it;
+        }
+        return res;
+    }
+}
+
+MyVector::ConstVectorIterator MyVector::find(const ValueType& value, bool isBegin) const {
+    ConstVectorIterator it(_data);
+    if (isBegin) {
+        for (; it != end(); ++it) {
+            if (*it == value) {
+                return it;
+            }
+        }
+        return it;
+    }
+    else {
+        ConstVectorIterator res(_data);
+        for (; it != end(); ++it) {
+            if (*it == value) {
+                res = it;
+            }
+        }
+        if ((it == end()) && (*res != value)) {
             return it;
         }
         return res;
@@ -356,10 +400,11 @@ void MyVector::print(std::ostream& stream) const {
     ConstVectorIterator it(_data);
     stream << "[";
     if (size()) {
-        for (; it != end(); ++it) {
-            stream << *it << ", ";
-        }
         stream << *it;
+        ++it;
+        for (; it != end(); ++it) {
+            stream << ", " << *it;
+        }
     }
     stream << "]";
 }
@@ -374,7 +419,7 @@ std::ostream& operator<<(std::ostream& stream, const MyVector& myVector) {
 
 
 void MyVector::resizeVector(size_t size) {
-    if (size > capacity()) {
+    if (size >= capacity()) {
         switch (_strategy) {
             case ResizeStrategy::Additive:
                 _capacity += _resizeCoef;

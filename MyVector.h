@@ -115,6 +115,7 @@ public:
     // если isBegin == true, найти индекс первого элемента, равного value, иначе последнего
     // если искомого элемента нет, вернуть end
     VectorIterator find(const ValueType& value, bool isBegin = true);
+    ConstVectorIterator find(const ValueType& value, bool isBegin = true) const;
 
     // зарезервировать память (принудительно задать capacity)
     void reserve(const size_t capacity);
