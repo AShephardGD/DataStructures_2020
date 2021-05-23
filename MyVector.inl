@@ -4,85 +4,107 @@
 #include <iostream>
 #include <algorithm>
 
-MyVector::VectorIterator::VectorIterator(ValueType* ptr, size_t index) : _ptr(ptr), _index(index) {}
+template<typename T>
+MyVector<T>::VectorIterator::VectorIterator(T* ptr, size_t index) : _ptr(ptr), _index(index) {}
 
-ValueType& MyVector::VectorIterator::operator*() {
+template <typename T>
+T& MyVector<T>::VectorIterator::operator*() {
     return *(_ptr);
 }
 
-ValueType* MyVector::VectorIterator::operator->() {
+template <typename T>
+T* MyVector<T>::VectorIterator::operator->() {
     return _ptr;
 }
 
-MyVector::VectorIterator& MyVector::VectorIterator::operator++() {
+template <typename T>
+typename MyVector<T>::VectorIterator& MyVector<T>::VectorIterator::operator++() {
     ++_ptr;
     ++_index;
     return *(this);
 }
 
-MyVector::VectorIterator MyVector::VectorIterator::operator++(int notUsed) {
+template <typename T>
+typename MyVector<T>::VectorIterator MyVector<T>::VectorIterator::operator++(int notUsed) {
     VectorIterator temp = *this;
     ++(*this);
     return temp;
 }
 
-bool MyVector::VectorIterator::operator!=(const MyVector::VectorIterator& other) {
+template <typename T>
+bool MyVector<T>::VectorIterator::operator!=(const MyVector<T>::VectorIterator& other) {
     return _ptr != other._ptr;
 }
 
-bool MyVector::VectorIterator::operator==(const MyVector::VectorIterator& other) {
+template <typename T>
+bool MyVector<T>::VectorIterator::operator==(const MyVector<T>::VectorIterator& other) {
     return _ptr == other._ptr;
 }
 
-std::ptrdiff_t MyVector::VectorIterator::operator-(const MyVector::VectorIterator& other) {
+template <typename T>
+std::ptrdiff_t MyVector<T>::VectorIterator::operator-(const MyVector<T>::VectorIterator& other) {
     return _ptr - other._ptr;
 }
 
-size_t MyVector::VectorIterator::getIndex() const {
+template <typename T>
+size_t MyVector<T>::VectorIterator::getIndex() const {
     return _index;
 }
 
 
 
-MyVector::ConstVectorIterator::ConstVectorIterator(const ValueType* ptr) : _ptr(ptr) {}
+template <typename T>
+MyVector<T>::ConstVectorIterator::ConstVectorIterator(const T* ptr) : _ptr(ptr) {}
 
-const ValueType& MyVector::ConstVectorIterator::operator*() {
+template <typename T>
+const T& MyVector<T>::ConstVectorIterator::operator*() {
     return *(_ptr);
 }
 
-const ValueType* MyVector::ConstVectorIterator::operator->() {
+template <typename T>
+const T* MyVector<T>::ConstVectorIterator::operator->() {
     return _ptr;
 }
 
-MyVector::ConstVectorIterator& MyVector::ConstVectorIterator::operator++() {
+template <typename T>
+typename MyVector<T>::ConstVectorIterator& MyVector<T>::ConstVectorIterator::operator++() {
     ++_ptr;
     return *(this);
 }
 
-MyVector::ConstVectorIterator MyVector::ConstVectorIterator::operator++(int notUsed) {
+template <typename T>
+typename MyVector<T>::ConstVectorIterator MyVector<T>::ConstVectorIterator::operator++(int notUsed) {
     ConstVectorIterator temp = *(this);
     ++(*this);
     return temp;
 }
 
-bool MyVector::ConstVectorIterator::operator!=(const MyVector::ConstVectorIterator& other) {
+template <typename T>
+bool MyVector<T>::ConstVectorIterator::operator!=(const MyVector<T>::ConstVectorIterator& other) {
     return _ptr != other._ptr;
 }
 
-bool MyVector::ConstVectorIterator::operator==(const MyVector::ConstVectorIterator& other) {
+template <typename T>
+bool MyVector<T>::ConstVectorIterator::operator==(const MyVector<T>::ConstVectorIterator& other) {
     return _ptr == other._ptr;
 }
 
-std::ptrdiff_t MyVector::ConstVectorIterator::operator-(const MyVector::ConstVectorIterator& other) {
+template <typename T>
+std::ptrdiff_t MyVector<T>::ConstVectorIterator::operator-(const MyVector<T>::ConstVectorIterator& other) {
     return _ptr - other._ptr;
 }
 
 
-MyVector::MyVector(size_t size, ResizeStrategy strategy, float coef) {
+
+template <typename T>
+MyVector<T>::MyVector(size_t size, ResizeStrategy strategy, float coef) {
     _size = size;
     _capacity = size;
     if (_size) {
-        _data = new ValueType[size];
+        _data = new T[size];
+        for (size_t i = 0; i < _size; ++i) {
+            _data[i] = T();
+        }
     }
     else {
         _data = nullptr;
@@ -91,11 +113,12 @@ MyVector::MyVector(size_t size, ResizeStrategy strategy, float coef) {
     _strategy = strategy;
 }
 
-MyVector::MyVector(size_t size, ValueType value, ResizeStrategy strategy, float coef) {
+template <typename T>
+MyVector<T>::MyVector(size_t size, const T& value, ResizeStrategy strategy, float coef) {
     _size = size;
     _capacity = size;
     if (_size) {
-        _data = new ValueType[size];
+        _data = new T[size];
         for (size_t i = 0; i < _size; ++i) {
             _data[i] = value;
         }
@@ -107,11 +130,12 @@ MyVector::MyVector(size_t size, ValueType value, ResizeStrategy strategy, float 
     _strategy = strategy;
 }
 
-MyVector::MyVector(const MyVector& copy) {
+template <typename T>
+MyVector<T>::MyVector(const MyVector& copy) {
     _size = copy.size();
     _capacity = copy.size();
     if (size()) {
-        _data = new ValueType[size()];
+        _data = new T[size()];
         for (size_t i = 0; i < size(); ++i) {
             _data[i] = copy[i];
         }
@@ -123,7 +147,8 @@ MyVector::MyVector(const MyVector& copy) {
     _strategy = copy._strategy;
 }
 
-MyVector::MyVector(MyVector&& other) noexcept {
+template <typename T>
+MyVector<T>::MyVector(MyVector&& other) noexcept {
     _data = nullptr;
     std::swap(_size, other._size);
     std::swap(_data, other._data);
@@ -134,7 +159,8 @@ MyVector::MyVector(MyVector&& other) noexcept {
 
 
 
-MyVector& MyVector::operator=(const MyVector& other) {
+template <typename T>
+MyVector<T>& MyVector<T>::operator=(const MyVector& other) {
     _size = other.size();
     delete[] _data;
     resizeVector(size());
@@ -146,7 +172,8 @@ MyVector& MyVector::operator=(const MyVector& other) {
     return *this;
 }
 
-MyVector& MyVector::operator=(MyVector&& other) noexcept {
+template <typename T>
+MyVector<T>& MyVector<T>::operator=(MyVector&& other) noexcept {
     std::swap(_size, other._size);
     std::swap(_data, other._data);
     std::swap(_capacity, other._capacity);
@@ -158,7 +185,8 @@ MyVector& MyVector::operator=(MyVector&& other) noexcept {
     return *this;
 }
 
-MyVector::~MyVector() {
+template <typename T>
+MyVector<T>::~MyVector() {
     delete[] _data;
     _data = nullptr;
     _size = 0;
@@ -167,15 +195,18 @@ MyVector::~MyVector() {
 
 
 
-size_t MyVector::capacity() const {
+template <typename T>
+size_t MyVector<T>::capacity() const {
     return _capacity;
 }
 
-size_t MyVector::size() const{
+template <typename T>
+size_t MyVector<T>::size() const{
     return _size;
 }
 
-float MyVector::loadFactor() const {
+template <typename T>
+float MyVector<T>::loadFactor() const {
     if (capacity()) {
         return ((float) size()) / ((float) capacity());
     }
@@ -186,7 +217,8 @@ float MyVector::loadFactor() const {
 
 
 
-MyVector::VectorIterator MyVector::begin() {
+template <typename T>
+typename MyVector<T>::VectorIterator MyVector<T>::begin() {
     if (size()) {
         return MyVector::VectorIterator(_data, 0);
     }
@@ -195,7 +227,8 @@ MyVector::VectorIterator MyVector::begin() {
     }
 }
 
-MyVector::ConstVectorIterator MyVector::begin() const {
+template <typename T>
+typename MyVector<T>::ConstVectorIterator MyVector<T>::begin() const {
     if (size()) {
         return MyVector::ConstVectorIterator(_data);
     }
@@ -204,7 +237,8 @@ MyVector::ConstVectorIterator MyVector::begin() const {
     }
 }
 
-MyVector::VectorIterator MyVector::end() {
+template <typename T>
+typename MyVector<T>::VectorIterator MyVector<T>::end() {
     if (size()) {
         return MyVector::VectorIterator(_data + size(), size());
     }
@@ -213,7 +247,8 @@ MyVector::VectorIterator MyVector::end() {
     }
 }
 
-MyVector::ConstVectorIterator MyVector::end() const {
+template <typename T>
+typename MyVector<T>::ConstVectorIterator MyVector<T>::end() const {
     if (size()) {
         return MyVector::ConstVectorIterator(_data + size());
     }
@@ -224,14 +259,16 @@ MyVector::ConstVectorIterator MyVector::end() const {
 
 
 
-ValueType& MyVector::operator[](const size_t i) {
+template <typename T>
+T& MyVector<T>::operator[](const size_t i) {
     if (i >= size()) {
         throw std::out_of_range("Called [] - Out of MyVector's range");
     }
     return _data[i];
 }
 
-const ValueType& MyVector::operator[](const size_t i) const {
+template <typename T>
+const T& MyVector<T>::operator[](const size_t i) const {
     if (i >= size()) {
         throw std::out_of_range("Called [] - Out of MyVector's range");
     }
@@ -240,11 +277,13 @@ const ValueType& MyVector::operator[](const size_t i) const {
 
 
 
-void MyVector::pushBack(const ValueType& value) {
+template <typename T>
+void MyVector<T>::pushBack(const T& value) {
     insert(size(), value);
 }
 
-void MyVector::insert(size_t i, const ValueType& value) {
+template <typename T>
+void MyVector<T>::insert(size_t i, const T& value) {
     if (i > size()) {
         i = size();
     }
@@ -257,7 +296,8 @@ void MyVector::insert(size_t i, const ValueType& value) {
     _size = newSize;
 }
 
-void MyVector::insert(size_t i, const MyVector& value) {
+template <typename T>
+void MyVector<T>::insert(size_t i, const MyVector& value) {
     if (i > size()) {
         i = size();
     }
@@ -272,25 +312,30 @@ void MyVector::insert(size_t i, const MyVector& value) {
     _size = newSize;
 }
 
-void MyVector::insert(MyVector::VectorIterator it, const ValueType& value) {
+template <typename T>
+void MyVector<T>::insert(MyVector::VectorIterator it, const T& value) {
     insert(it.getIndex(), value);
 }
 
-void MyVector::insert(MyVector::VectorIterator it, const MyVector& value) {
+template <typename T>
+void MyVector<T>::insert(MyVector::VectorIterator it, const MyVector& value) {
     insert(it.getIndex(), value);
 }
 
 
 
-void MyVector::popBack() {
+template <typename T>
+void MyVector<T>::popBack() {
     --_size;
 }
 
-void MyVector::erase(const size_t i) {
+template <typename T>
+void MyVector<T>::erase(const size_t i) {
     erase(i, 1);
 }
 
-void MyVector::erase(const size_t i,  size_t len) {
+template <typename T>
+void MyVector<T>::erase(const size_t i,  size_t len) {
     if (i >= size()) {
         throw std::out_of_range("Called erase() - Out of MyString's range");
     }
@@ -305,7 +350,8 @@ void MyVector::erase(const size_t i,  size_t len) {
 
 
 
-MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) {
+template <typename T>
+typename MyVector<T>::VectorIterator MyVector<T>::find(const T& value, bool isBegin) {
     VectorIterator it(_data, 0);
     if (isBegin) {
         for (; it != end(); ++it) {
@@ -329,7 +375,8 @@ MyVector::VectorIterator MyVector::find(const ValueType& value, bool isBegin) {
     }
 }
 
-MyVector::ConstVectorIterator MyVector::find(const ValueType& value, bool isBegin) const {
+template <typename T>
+typename MyVector<T>::ConstVectorIterator MyVector<T>::find(const T& value, bool isBegin) const {
     ConstVectorIterator it(_data);
     if (isBegin) {
         for (; it != end(); ++it) {
@@ -355,7 +402,8 @@ MyVector::ConstVectorIterator MyVector::find(const ValueType& value, bool isBegi
 
 
 
-void MyVector::reserve(const size_t capacity) {
+template <typename T>
+void MyVector<T>::reserve(const size_t capacity) {
     if (!capacity) {
         delete[] _data;
         _data = nullptr;
@@ -363,7 +411,7 @@ void MyVector::reserve(const size_t capacity) {
         _capacity = capacity;
         return;
     }
-    ValueType* newData = new ValueType[capacity];
+    T* newData = new T[capacity];
     _capacity = capacity;
     if (capacity < size()) {
         for (size_t i = 0; i < capacity; ++i) {
@@ -380,7 +428,8 @@ void MyVector::reserve(const size_t capacity) {
     _data = newData;
 }
 
-void MyVector::resize(const size_t size, const ValueType& value) {
+template <typename T>
+void MyVector<T>::resize(const size_t size, const T& value) {
     if (size > _size) {
         resizeVector(size);
         for (size_t i = _size; i < size; ++i) {
@@ -390,13 +439,15 @@ void MyVector::resize(const size_t size, const ValueType& value) {
     _size = size;
 }
 
-void MyVector::clear() {
+template <typename T>
+void MyVector<T>::clear() {
     _size = 0;
 }
 
 
 
-void MyVector::print(std::ostream& stream) const {
+template <typename T>
+void MyVector<T>::print(std::ostream& stream) const {
     ConstVectorIterator it(_data);
     stream << "[";
     if (size()) {
@@ -411,14 +462,16 @@ void MyVector::print(std::ostream& stream) const {
 
 
 
-std::ostream& operator<<(std::ostream& stream, const MyVector& myVector) {
+template <typename T>
+std::ostream& operator<<(std::ostream& stream, const MyVector<T>& myVector) {
     myVector.print(stream);
     return stream;
 }
 
 
 
-void MyVector::resizeVector(size_t size) {
+template <typename T>
+void MyVector<T>::resizeVector(size_t size) {
     if (size >= capacity()) {
         switch (_strategy) {
             case ResizeStrategy::Additive:
@@ -432,7 +485,7 @@ void MyVector::resizeVector(size_t size) {
                 _capacity *= _resizeCoef;
                 break;
         }
-        ValueType* newData = new ValueType[_capacity];
+        T* newData = new T[_capacity];
         for (size_t i = 0; i < _size; ++i) {
             newData[i] = _data[i];
         }
@@ -441,3 +494,5 @@ void MyVector::resizeVector(size_t size) {
         resizeVector(size);
     }
 }
+
+template class MyVector<double>;
